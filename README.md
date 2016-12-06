@@ -1,12 +1,21 @@
 # waldo project
 
 
-##Install : 
+##Install :
+
+This is a standard Golang project. Go to the project and install it . See also [https://golang.org/doc/install] 
+
+```bash
 go install
+```
 
 ##Getting started : 
 
-$GOPATH/bin/waldo -h
+Once you have installed, you can run the waldo executable using command lines. 
+
+###Help
+```bash
+./waldo -h
 
 Usage of /home/grego/go/bin/waldo:
   -key string
@@ -15,10 +24,12 @@ Usage of /home/grego/go/bin/waldo:
     	Number of workers reading photos (default 12)
   -writers int
     	Number of workers indexing photos (default 12)
+```
 
-Use either -key if you want to query a photo or without this key value if you want to run the whole process.
+Note: Use either -key if you want to query a photo or you will run the read/write program.
 
-
+###Run the program
+```bash
 ./waldo
 
 worker 3 indexing photo 01a2539a-9e53-4050-a6b5-d94f0ee6cc55.10ab5118-b1e5-4ac9-922e-125138dbdf87.jpg
@@ -30,9 +41,14 @@ worker 12 indexing photo 01b819c4-c765-4dca-a407-609b64954126.a17c6591-de20-4b75
 worker 8 indexing photo 0188017b-0d90-4cab-9009-bbb74501c3d5.ede96cc7-5500-4b3a-8828-26aabcaa2f4c.jpg
 
 FINISHED 129 photos have been processed
+```
+You should see the FINISHED flag with the total number of photos that have been read and indexed.
 
-Query photo 
+You might want to add more readers or writers and test performance by setting writers and readers command flags.
 
+###Make a query to check a photo EXIF data
+
+```bash
 $GOPATH/bin/waldo -key 0009fcfe-376e-42fe-85a2-85ee7d2193d0.0649232a-b406-4ec1-b175-ba0d91aa3e7c.jpg
 Artist = 
 Copyright = 
@@ -46,14 +62,13 @@ Software = Ver.1.02
 SubSecTime = 32
 SubSecTimeDigitized = 32
 SubSecTimeOriginal = 32
-
+```
 
 ##Concurrency
 
 Since I/O network resources and Disk I/O are the main bottleneck I have separated consumer from producer and made each process concurrent. The producer process reads and parses EXIF data. I called it Reader. The consumer process (Indexer) indexes EXIF data into a LevelDB data store. 
 
-This is a parallel memory model in which multiple go routine can read simultaneously , and multiple indexers can write simultaneously to a single LevelDB datastore. 
+This is a "concurrent read concurrent write" parallel memory model in which multiple go routine can read simultaneously , and multiple indexers can write simultaneously to a single LevelDB datastore. 
 
-The number of consumes rand producers are configurable.
-
+The number of consumers rand producers are limited and configurable.
 
