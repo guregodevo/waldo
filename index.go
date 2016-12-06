@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"github.com/syndtr/goleveldb/leveldb"
-        "fmt"
 )
 
 type Indexer struct {
@@ -29,16 +29,13 @@ func (i *Indexer) Index(key string, tags map[string]string) {
 }
 
 func (i *Indexer) worker(id int, jobs chan *PhotoResult, out chan bool) {
-        for j := range jobs {
-                if j == nil {
-                    out <- false
-                } else {
-                  fmt.Println("worker", id, "indexing photo", j.key)
-                  i.Index(j.key,j.tags)
-                  out <- true 
-                }
-        }
+	for j := range jobs {
+		if j == nil {
+			out <- false
+		} else {
+			fmt.Println("worker", id, "indexing photo", j.key)
+			i.Index(j.key, j.tags)
+			out <- true
+		}
+	}
 }
-
-
-

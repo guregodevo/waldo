@@ -1,12 +1,12 @@
 package main
 
 import (
-"flag"
+	"flag"
 	"fmt"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
+	"strings"
 	"sync/atomic"
-        "strings"
 )
 
 /**
@@ -18,11 +18,10 @@ import (
  */
 
 var (
-         readerworkerNum = flag.Int("readers",12,"Number of workers reading photos")
-         indexerworkerNum = flag.Int("writers",12,"Number of workers indexing photos")
-         photoKey = flag.String("key","", "Key of the photo")
+	readerworkerNum  = flag.Int("readers", 12, "Number of workers reading photos")
+	indexerworkerNum = flag.Int("writers", 12, "Number of workers indexing photos")
+	photoKey         = flag.String("key", "", "Key of the photo")
 )
-
 
 func main() {
 	db, err := leveldb.OpenFile("photo.db", nil)
@@ -31,20 +30,20 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
-        flag.Parse()
-        if *photoKey != "" {
-           iter := db.NewIterator(util.BytesPrefix([]byte(*photoKey)), nil)
-for iter.Next() {
-    key := iter.Key()
-    value := iter.Value()  
-    fmt.Println(strings.SplitAfter(string(key), ":")[1], "=", string(value))
-}
-iter.Release()
-err = iter.Error()
+	flag.Parse()
+	if *photoKey != "" {
+		iter := db.NewIterator(util.BytesPrefix([]byte(*photoKey)), nil)
+		for iter.Next() {
+			key := iter.Key()
+			value := iter.Value()
+			fmt.Println(strings.SplitAfter(string(key), ":")[1], "=", string(value))
+		}
+		iter.Release()
+		err = iter.Error()
 
-           return
-        }
-        //concurrent read, concurrent write 
+		return
+	}
+	//concurrent read, concurrent write
 	readjobs := make(chan string, 100)
 	indexjobs := make(chan *PhotoResult, 100)
 	notifications := make(chan bool, 100)
@@ -58,15 +57,14 @@ err = iter.Error()
 	}
 
 	for w := 1; w <= *readerworkerNum; w++ {
-	        r, _ := NewReader()
+		r, _ := NewReader()
 		go r.worker(w, readjobs, indexjobs)
 	}
-	
-        for w := 1; w <= *indexerworkerNum; w++ {
-	        i := NewIndexer(db)
+
+	for w := 1; w <= *indexerworkerNum; w++ {
+		i := NewIndexer(db)
 		go i.worker(w, indexjobs, notifications)
 	}
-
 
 	for i := range photoObjects {
 		readjobs <- *photoObjects[i].Key
@@ -78,6 +76,6 @@ err = iter.Error()
 		<-notifications
 		cnt = atomic.AddInt32(&cnt, 1)
 	}
-         
+
 	fmt.Println("FINISHED", cnt, "photos have been processed")
 }

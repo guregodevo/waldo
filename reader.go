@@ -78,6 +78,6 @@ func (r *PhotoReader) FetchEXIF(key string) (*PhotoResult, error) {
 		return nil, err
 	}
 	w := &Walker{tags: make(map[string]string)}
-	x.Walk(w) 
+	x.Walk(w)
 	return &PhotoResult{tags: w.tags, key: key}, err
 }
