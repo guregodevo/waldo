@@ -21,6 +21,7 @@ func (i *Indexer) Index(key string, tags map[string]string) {
 		var b []byte
 		s := key
 		b = append(b, s...)
+		b = append(b, ":"...) //separator
 		b = append(b, k...)
 		batch.Put(b, []byte(tags[k]))
 	}
